@@ -34,7 +34,11 @@
 #include "wcd-mbhc-adc.h"
 #include "wcd-mbhc-v2-api.h"
 
-#define CONFIG_AUDIO_UART_DEBUG
+/*begin, add support fm inside lan add by wangfajie@longcheer.com at 20190501*/
+#if defined(CONFIG_FM_INSIDE_LAN)
+#include <sound/fm_lan.h>
+#endif
+/*end*/
 
 void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 			  struct snd_soc_jack *jack, int status, int mask)
@@ -546,6 +550,12 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 	pr_debug("%s: enter insertion %d hph_status %x\n",
 		 __func__, insertion, mbhc->hph_status);
 	if (!insertion) {
+		/*begin, there is headset plug out so we need pass the state to kernel in btfm modules
+		  add by wangfajie@longcheer.com at 20190501*/
+#if defined(CONFIG_FM_INSIDE_LAN)
+		headset_status_change(false);
+#endif
+		/*end*/
 		/* Report removal */
 		mbhc->hph_status &= ~jack_type;
 		/*
@@ -591,6 +601,13 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		mbhc->current_plug = MBHC_PLUG_TYPE_NONE;
 		mbhc->force_linein = false;
 	} else {
+		/*begin, there is headset plug in so we need pass the state to kernel in btfm modules
+			add by wangfajie@longcheer.com at 20190501*/
+#if defined(CONFIG_FM_INSIDE_LAN)
+		headset_status_change(true);
+#endif
+		/*end*/
+
 		/*
 		 * Report removal of current jack type.
 		 * Headphone to headset shouldn't report headphone
